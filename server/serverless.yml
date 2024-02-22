@@ -1,0 +1,301 @@
+org: hancharou
+app: aws-node-http-api-project
+service: aws-node-http-api-project
+frameworkVersion: '3'
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  environment:
+    DYNAMODB_UNIQUES_TABLE: ${self:service}-uniquesTable-${sls:stage}
+    DYNAMODB_USERS_TABLE: ${self:service}-usersTable-${sls:stage}
+    DYNAMODB_FILES_TABLE: ${self:service}-filesTable-${sls:stage}
+    S3_BUCKET: node-sdk-sample-988442f7-8842-462a-bd10-3663c1615a46
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 'dynamodb:PutItem'
+            - 'dynamodb:Get*'
+            - 'dynamodb:Scan*'
+            - 'dynamodb:UpdateItem'
+            - 'dynamodb:DeleteItem'
+          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-uniquesTable-${sls:stage}
+        - Effect: 'Allow'
+          Action:
+            - 'dynamodb:PutItem'
+            - 'dynamodb:Get*'
+            - 'dynamodb:Scan*'
+            - 'dynamodb:UpdateItem'
+            - 'dynamodb:DeleteItem'
+          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-usersTable-${sls:stage}
+        - Effect: 'Allow'
+          Action:
+            - 'dynamodb:PutItem'
+            - 'dynamodb:Get*'
+            - 'dynamodb:Scan*'
+            - 'dynamodb:UpdateItem'
+            - 'dynamodb:DeleteItem'
+          Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}-filesTable-${sls:stage}
+functions:
+  loginUser:
+    handler: loginUser.loginUser
+    events:
+      - httpApi:
+          path: /login
+          method: post
+  getUsers:
+    handler: getUsers.getUsers
+    events:
+      - httpApi:
+          path: /users
+          method: get
+  deleteUser:
+    handler: deleteUser.deleteUser
+    events:
+      - httpApi:
+          path: /users
+          method: delete
+  createUser:
+    handler: createUser.createUser
+    events:
+      - httpApi:
+          path: /users
+          method: post
+  addFile:
+    handler: addFile.addFile
+    events:
+      - httpApi:
+          path: /files
+          method: post
+  getFiles:
+    handler: getFiles.getFiles
+    events:
+      - httpApi:
+          path: /files
+          method: get
+  deleteFile:
+    handler: deleteFile.deleteFile
+    events:
+      - httpApi:
+          path: /files
+          method: delete
+  downloadFile:
+    handler: downloadFile.downloadFile
+    events:
+      - httpApi:
+          path: /files/download
+          method: get
+  updateFile:
+    handler: updateFile.updateFile
+    events:
+      - httpApi:
+          path: /files
+          method: patch
+  getFileVersions:
+    handler: getFileVersions.getFileVersions
+    events:
+      - httpApi:
+          path: /file-versions
+          method: get
+resources:
+  Resources:
+    UniquesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-uniquesTable-${sls:stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: primary_key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: primary_key
+            KeyType: HASH
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-usersTable-${sls:stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: primary_key
+            AttributeType: S
+          - AttributeName: username
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+          - AttributeName: role
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: N
+          - AttributeName: updatedAt
+            AttributeType: N
+          - AttributeName: query_key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: primary_key
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UsernameIndex
+            KeySchema:
+              - AttributeName: username
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: RoleIndex
+            KeySchema:
+              - AttributeName: role
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: EmailIndex
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: CreatedAtIndex
+            KeySchema:
+              - AttributeName: createdAt
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: UpdatedAtIndex
+            KeySchema:
+              - AttributeName: updatedAt
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyUsernameIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+              - AttributeName: username
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyRoleIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+              - AttributeName: role
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyEmailIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+              - AttributeName: email
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyCreatedAtIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyUpdatedAtIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+              - AttributeName: updatedAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+    FilesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-filesTable-${sls:stage}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: primary_key
+            AttributeType: S
+          - AttributeName: filename
+            AttributeType: S
+          - AttributeName: fileType
+            AttributeType: S
+          - AttributeName: username
+            AttributeType: S
+          - AttributeName: updatedAt
+            AttributeType: N
+          - AttributeName: query_key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: primary_key
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: FilenameIndex
+            KeySchema:
+              - AttributeName: filename
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: FileTypeIndex
+            KeySchema:
+              - AttributeName: fileType
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: UsernameIndex
+            KeySchema:
+              - AttributeName: username
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: UpdatedAtIndex
+            KeySchema:
+              - AttributeName: updatedAt
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyFilenameIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+              - AttributeName: filename
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyFileTypeIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+              - AttributeName: fileType
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyUsernameIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+              - AttributeName: username
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: QueryKeyUpdatedAtIndex
+            KeySchema:
+              - AttributeName: query_key
+                KeyType: HASH
+              - AttributeName: updatedAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
