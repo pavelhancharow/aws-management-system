@@ -1,0 +1,21 @@
+{
+  "type": "commonjs",
+  "scripts": {
+    "start": "serverless offline start --reloadHandler",
+    "deploy": "serverless deploy"
+  },
+  "dependencies": {
+    "@middy/core": "4.7.0",
+    "@middy/http-json-body-parser": "4.7.0",
+    "@middy/validator": "4.7.0",
+    "aws-sdk": "^2.1525.0",
+    "bcrypt": "^5.1.1",
+    "date-fns": "^3.0.6",
+    "jsonwebtoken": "^9.0.2",
+    "lambda-multipart-parser": "^1.0.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "serverless-offline": "^13.3.2"
+  }
+}
